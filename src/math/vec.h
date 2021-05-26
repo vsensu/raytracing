@@ -5,6 +5,7 @@
 #include <functional>
 #include <iostream>
 #include <ostream>
+#include <type_traits>
 #include <utility>
 
 template <typename ElementType, int N>
@@ -13,6 +14,8 @@ class vec;
 template <typename ElementType, int N>
 class vec_base {
  public:
+  using element_type = ElementType;
+
   vec_base() {}
   template <typename... Tail>
   vec_base(
@@ -64,8 +67,6 @@ class vec_base {
     return temp;
   }
 
-  using element_type = ElementType;
-
  private:
   template <std::size_t... I>
   vec_base minus(std::index_sequence<I...>) const {
@@ -99,44 +100,58 @@ class vec_base {
 template <typename ElementType, int N>
 class vec : public vec_base<ElementType, N> {
  public:
-  using vec_base::vec_base;
+  using vec_base<ElementType, N>::vec_base;
 };
 
 template <typename ElementType>
 class vec<ElementType, 3> : public vec_base<ElementType, 3> {
  public:
-  using vec_base::vec_base;
-  const ElementType x() const { return vec_base::operator[](0); }
-  const ElementType y() const { return vec_base::operator[](1); }
-  const ElementType z() const { return vec_base::operator[](2); }
+  using vec_base<ElementType, 3>::vec_base;
+  const ElementType x() const {
+    return vec_base<ElementType, 3>::operator[](0);
+  }
+  const ElementType y() const {
+    return vec_base<ElementType, 3>::operator[](1);
+  }
+  const ElementType z() const {
+    return vec_base<ElementType, 3>::operator[](2);
+  }
 
   const ElementType x() { return (static_cast<const vec*>(this))->x(); }
   const ElementType y() { return (static_cast<const vec*>(this))->y(); }
   const ElementType z() { return (static_cast<const vec*>(this))->z(); }
 
-  void x(const ElementType& v) { vec_base::operator[](0) = v; }
-  void y(const ElementType& v) { vec_base::operator[](1) = v; }
-  void z(const ElementType& v) { vec_base::operator[](2) = v; }
+  void x(const ElementType& v) { vec_base<ElementType, 3>::operator[](0) = v; }
+  void y(const ElementType& v) { vec_base<ElementType, 3>::operator[](1) = v; }
+  void z(const ElementType& v) { vec_base<ElementType, 3>::operator[](2) = v; }
 };
 
 template <typename ElementType>
 class vec<ElementType, 4> : public vec_base<ElementType, 4> {
  public:
-  using vec_base::vec_base;
-  const ElementType x() const { return vec_base::operator[](0); }
-  const ElementType y() const { return vec_base::operator[](1); }
-  const ElementType z() const { return vec_base::operator[](2); }
-  const ElementType w() const { return vec_base::operator[](3); }
+  using vec_base<ElementType, 4>::vec_base;
+  const ElementType x() const {
+    return vec_base<ElementType, 4>::operator[](0);
+  }
+  const ElementType y() const {
+    return vec_base<ElementType, 4>::operator[](1);
+  }
+  const ElementType z() const {
+    return vec_base<ElementType, 4>::operator[](2);
+  }
+  const ElementType w() const {
+    return vec_base<ElementType, 4>::operator[](3);
+  }
 
   const ElementType x() { return (static_cast<const vec*>(this))->x(); }
   const ElementType y() { return (static_cast<const vec*>(this))->y(); }
   const ElementType z() { return (static_cast<const vec*>(this))->z(); }
   const ElementType w() { return (static_cast<const vec*>(this))->w(); }
 
-  void x(const ElementType& v) { vec_base::operator[](0) = v; }
-  void y(const ElementType& v) { vec_base::operator[](1) = v; }
-  void z(const ElementType& v) { vec_base::operator[](2) = v; }
-  void w(const ElementType& v) { vec_base::operator[](3) = v; }
+  void x(const ElementType& v) { vec_base<ElementType, 4>::operator[](0) = v; }
+  void y(const ElementType& v) { vec_base<ElementType, 4>::operator[](1) = v; }
+  void z(const ElementType& v) { vec_base<ElementType, 4>::operator[](2) = v; }
+  void w(const ElementType& v) { vec_base<ElementType, 4>::operator[](3) = v; }
 };
 
 using vec2f = vec<float, 2>;
@@ -151,5 +166,64 @@ using vec3 = vec3f;
 using vec4 = vec4f;
 
 using point3 = vec3;
+
+template <typename ElementType, std::size_t... I>
+auto vec_base_plus(const vec_base<ElementType, sizeof...(I)>& lhs,
+                   const vec_base<ElementType, sizeof...(I)>& rhs,
+                   std::index_sequence<I...>) {
+  //   return vec_base(u[0] + v[0], u[1] + v[1], u[2] + v[2]);
+  return vec_base<ElementType, sizeof...(I)>((lhs[I] + rhs[I])...);
+}
+
+template <typename ElementType, int N>
+inline const vec_base<ElementType, N> operator+(
+    const vec_base<ElementType, N>& u,
+    const vec_base<ElementType, N>& v) {
+  return vec_base_plus(u, v, std::make_index_sequence<N>{});
+}
+
+template <typename ElementType, int N>
+inline const vec_base<ElementType, N> operator-(
+    const vec_base<ElementType, N>& u,
+    const vec_base<ElementType, N>& v) {
+  return vec_base_plus(u, -v, std::make_index_sequence<N>{});
+}
+
+template <typename ElementType, std::size_t... I>
+auto vec_base_mul_vec(const vec_base<ElementType, sizeof...(I)>& lhs,
+                      const vec_base<ElementType, sizeof...(I)>& rhs,
+                      std::index_sequence<I...>) {
+  return vec_base<ElementType, sizeof...(I)>((lhs[I] * rhs[I])...);
+}
+
+template <typename T, typename ElementType, std::size_t... I>
+auto vec_base_mul_number(const T& t,
+                         const vec_base<ElementType, sizeof...(I)>& v,
+                         std::index_sequence<I...>) {
+  return vec_base<ElementType, sizeof...(I)>((t * v[I])...);
+}
+
+template <typename T, typename ElementType, int N>
+inline const vec_base<ElementType, N> operator*(
+    const T& t,
+    const vec_base<ElementType, N>& v) requires std::is_arithmetic_v<T> {
+  // return vec3(t*v.e[0], t*v.e[1], t*v.e[2]);
+  return vec_base_mul_number(t, v, std::make_index_sequence<N>{});
+}
+
+template <typename T, typename ElementType, int N>
+inline const vec_base<ElementType, N> operator*(
+    const vec_base<ElementType, N>& v,
+    const T& t) requires std::is_arithmetic_v<T> {
+  // return vec3(t*v.e[0], t*v.e[1], t*v.e[2]);
+  return vec_base_mul_number(t, v, std::make_index_sequence<N>{});
+}
+
+template <typename ElementType, int N>
+inline const vec_base<ElementType, N> operator*(
+    const vec_base<ElementType, N>& u,
+    const vec_base<ElementType, N>& v) {
+  return vec_base_mul_vec(u, v, std::make_index_sequence<N>{});
+}
 
 #endif  // MATH_VEC_H_
