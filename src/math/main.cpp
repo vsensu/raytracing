@@ -1,20 +1,9 @@
 #include <iostream>
+#include "color.h"
 #include "vec.h"
 
 int main() {
-  vec3 f(1, 2, 3);
-  std::cout << f << '\n';
-  vec3 f2 = -f;
-  std::cout << f2 << '\n';
-  f += f2;
-  std::cout << f << '\n';
-  f -= f2;
-  std::cout << f << '\n';
-  f *= 3;
-  std::cout << f << '\n';
-  f /= 3;
-  std::cout << f << '\n';
-  std::cout << f.length() << '\n';
-  std::cout << f.length_squared() << '\n';
+  color c(1.f, 2.f, 3.f);
+  std::cout << c.x();
   return 0;
 }

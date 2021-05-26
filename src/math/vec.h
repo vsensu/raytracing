@@ -8,18 +8,22 @@
 #include <utility>
 
 template <typename ElementType, int N>
-class vec {
+class vec;
+
+template <typename ElementType, int N>
+class vec_base {
  public:
   template <typename... Tail>
-  vec(typename std::enable_if<sizeof...(Tail) + 1 == N, ElementType>::type head,
+  vec_base(
+      typename std::enable_if<sizeof...(Tail) + 1 == N, ElementType>::type head,
       Tail... tail)
       : elems_{head, ElementType(tail)...} {}
 
   auto operator-() const { return minus(std::make_index_sequence<N>{}); }
-  ElementType operator[](int i) const { return elems_[i]; }
-  ElementType& operator[](int i) { return elems_[i]; }
+  ElementType operator[](std::size_t i) const { return elems_[i]; }
+  ElementType& operator[](std::size_t i) { return elems_[i]; }
 
-  friend std::ostream& operator<<(std::ostream& os, const vec& v) {
+  friend std::ostream& operator<<(std::ostream& os, const vec_base& v) {
     // v.print(os, std::make_index_sequence<N>{});
     auto print_elem = [&](const ElementType& e) { os << e << ' '; };
     v.transform(print_elem);
@@ -32,23 +36,23 @@ class vec {
   //     ((os << elems_[I] << ' '), ...);
   // }
 
-  vec& operator+=(const vec& v) {
+  vec_base& operator+=(const vec_base& v) {
     for (int i = 0; i < N; ++i) {
       elems_[i] += v.elems_[i];
     }
     return *this;
   }
 
-  vec& operator-=(const vec& v) { return this->operator+=(-v); }
+  vec_base& operator-=(const vec_base& v) { return this->operator+=(-v); }
 
-  vec& operator*=(double t) {
+  vec_base& operator*=(double t) {
     for (int i = 0; i < N; ++i) {
       elems_[i] *= t;
     };
     return *this;
   }
 
-  vec& operator/=(double t) { return this->operator*=(1 / t); }
+  vec_base& operator/=(double t) { return this->operator*=(1 / t); }
 
   ElementType length() const { return std::sqrt(length_squared()); }
 
@@ -61,8 +65,8 @@ class vec {
 
  private:
   template <std::size_t... I>
-  vec minus(std::index_sequence<I...>) const {
-    return vec(-elems_[I]...);
+  vec_base minus(std::index_sequence<I...>) const {
+    return vec_base(-elems_[I]...);
   }
 
   void transform(std::function<void(const ElementType&)> p) const {
@@ -89,6 +93,40 @@ class vec {
   ElementType elems_[N]{0};
 };
 
+template <typename ElementType, int N>
+class vec : public vec_base<ElementType, N> {
+ public:
+  using vec_base::vec_base;
+};
+
+template <typename ElementType>
+class vec<ElementType, 3> : public vec_base<ElementType, 3> {
+ public:
+  using vec_base::vec_base;
+  const ElementType x() const { return vec_base::operator[](0); }
+  const ElementType y() const { return vec_base::operator[](1); }
+  const ElementType z() const { return vec_base::operator[](2); }
+
+  const ElementType x() { return (static_cast<const vec*>(this))->x(); }
+  const ElementType y() { return (static_cast<const vec*>(this))->y(); }
+  const ElementType z() { return (static_cast<const vec*>(this))->z(); }
+};
+
+template <typename ElementType>
+class vec<ElementType, 4> : public vec_base<ElementType, 4> {
+ public:
+  using vec_base::vec_base;
+  const ElementType x() const { return vec_base::operator[](0); }
+  const ElementType y() const { return vec_base::operator[](1); }
+  const ElementType z() const { return vec_base::operator[](2); }
+  const ElementType w() const { return vec_base::operator[](3); }
+
+  const ElementType x() { return (static_cast<const vec*>(this))->x(); }
+  const ElementType y() { return (static_cast<const vec*>(this))->y(); }
+  const ElementType z() { return (static_cast<const vec*>(this))->z(); }
+  const ElementType w() { return (static_cast<const vec*>(this))->w(); }
+};
+
 using vec2f = vec<float, 2>;
 using vec3f = vec<float, 3>;
 using vec4f = vec<float, 4>;
@@ -99,5 +137,7 @@ using vec4d = vec<double, 4>;
 using vec2 = vec2f;
 using vec3 = vec3f;
 using vec4 = vec4f;
+
+using point3 = vec3;
 
 #endif  // MATH_VEC_H_
