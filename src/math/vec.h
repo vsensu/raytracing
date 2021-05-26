@@ -13,6 +13,7 @@ class vec;
 template <typename ElementType, int N>
 class vec_base {
  public:
+  vec_base() {}
   template <typename... Tail>
   vec_base(
       typename std::enable_if<sizeof...(Tail) + 1 == N, ElementType>::type head,
@@ -63,6 +64,8 @@ class vec_base {
     return temp;
   }
 
+  using element_type = ElementType;
+
  private:
   template <std::size_t... I>
   vec_base minus(std::index_sequence<I...>) const {
@@ -110,6 +113,10 @@ class vec<ElementType, 3> : public vec_base<ElementType, 3> {
   const ElementType x() { return (static_cast<const vec*>(this))->x(); }
   const ElementType y() { return (static_cast<const vec*>(this))->y(); }
   const ElementType z() { return (static_cast<const vec*>(this))->z(); }
+
+  void x(const ElementType& v) { vec_base::operator[](0) = v; }
+  void y(const ElementType& v) { vec_base::operator[](1) = v; }
+  void z(const ElementType& v) { vec_base::operator[](2) = v; }
 };
 
 template <typename ElementType>
@@ -125,6 +132,11 @@ class vec<ElementType, 4> : public vec_base<ElementType, 4> {
   const ElementType y() { return (static_cast<const vec*>(this))->y(); }
   const ElementType z() { return (static_cast<const vec*>(this))->z(); }
   const ElementType w() { return (static_cast<const vec*>(this))->w(); }
+
+  void x(const ElementType& v) { vec_base::operator[](0) = v; }
+  void y(const ElementType& v) { vec_base::operator[](1) = v; }
+  void z(const ElementType& v) { vec_base::operator[](2) = v; }
+  void w(const ElementType& v) { vec_base::operator[](3) = v; }
 };
 
 using vec2f = vec<float, 2>;
