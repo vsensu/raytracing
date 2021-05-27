@@ -226,4 +226,40 @@ inline const vec_base<ElementType, N> operator*(
   return vec_base_mul_vec(u, v, std::make_index_sequence<N>{});
 }
 
+template <typename T, typename ElementType, int N>
+inline const vec_base<ElementType, N> operator/(
+    const vec_base<ElementType, N>& v,
+    const T& t) requires std::is_arithmetic_v<T> {
+  return (1.0 / t) * v;
+}
+
+template <typename ElementType, std::size_t... I>
+auto vec_base_dot(const vec_base<ElementType, sizeof...(I)>& lhs,
+                  const vec_base<ElementType, sizeof...(I)>& rhs,
+                  std::index_sequence<I...>) {
+  // return u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
+  return ((lhs[I] * rhs[I]) + ...);
+}
+
+template <typename ElementType, int N>
+inline const ElementType dot(const vec_base<ElementType, N>& u,
+                             const vec_base<ElementType, N>& v) {
+  return vec_base_dot(u, v, std::make_index_sequence<N>{});
+}
+
+// template <typename ElementType, std::size_t... I>
+// auto vec_base_cross(const vec_base<ElementType, sizeof...(I)>& lhs,
+//                     const vec_base<ElementType, sizeof...(I)>& rhs,
+//                     std::index_sequence<I...>) {
+//   return vec_base<ElementType, sizeof...(I)>();
+// }
+
+template <typename ElementType>
+inline const vec_base<ElementType, 3> cross(const vec_base<ElementType, 3>& u,
+                                            const vec_base<ElementType, 3>& v) {
+  return vec_base<ElementType, 3>(u[1] * v[2] - u[2] * v[1],
+                                  u[2] * v[0] - u[0] * v[2],
+                                  u[0] * v[1] - u[1] * v[0]);
+}
+
 #endif  // MATH_VEC_H_

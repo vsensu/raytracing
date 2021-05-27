@@ -10,5 +10,8 @@ int main() {
   std::cout << a * b << '\n';
   std::cout << 3 * a << '\n';
   std::cout << a * 4.f << '\n';
+  std::cout << a / 3 << '\n';
+  std::cout << dot(a, b) << '\n';
+  std::cout << cross(a, b) << '\n';
   return 0;
 }
